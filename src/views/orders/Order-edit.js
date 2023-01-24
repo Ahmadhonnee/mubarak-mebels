@@ -47,7 +47,26 @@ const OrderEdit = () => {
                 setEditing(data.data.data);
                 console.log(data.data.data);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -81,11 +100,11 @@ const OrderEdit = () => {
     const yupValidateShchema = yup.object().shape({
         product_name: yup
             .string()
-            .typeError('*Enter string')
-            .required("*Can't be empty")
-            .min(2, '*More than 2 characters')
-            .max(30, '*Less than 30 characters'),
-        description: yup.string().typeError('*Enter string').min(2, '*More than 2 characters'),
+            .typeError('*Matn kiriting')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .min(2, '*2 dan ortiq belgi')
+            .max(30, '*30 ta belgidan kam'),
+        description: yup.string().typeError('*Matn kiriting').min(2, '*2 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
     });
 
     const handleOrderEdit = ({ product_name, description }) => {
@@ -99,7 +118,26 @@ const OrderEdit = () => {
                 });
                 navigate(-1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -133,7 +171,7 @@ const OrderEdit = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} relative="path" variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                 </Grid>
@@ -163,17 +201,17 @@ const OrderEdit = () => {
                                             <Grid container justifyContent="center">
                                                 <Grid item container spacing={4} direction="column" my={5} md={6}>
                                                     <Grid item>
-                                                        <Typography variant="h2">Editing {editingOrder?.product_name}</Typography>
+                                                        <Typography variant="h2">"{editingOrder?.product_name}"ni oʻzgartirish</Typography>
                                                     </Grid>
                                                     <Grid item container direction="column" spacing={1} my={5} md={6}>
                                                         <Grid item mt={1}>
                                                             <Typography>Ordering product Name</Typography>
-                                                            <FormikInput name="product_name" inputText="Enter product Name" />
+                                                            <FormikInput name="product_name" inputText="Mahsulot nomini kiriting" />
                                                         </Grid>
 
                                                         <Grid item>
-                                                            <Typography>Description</Typography>
-                                                            <FormikInput name="description" inputText="Description" />
+                                                            <Typography>Tavsif</Typography>
+                                                            <FormikInput name="description" inputText="Tavsif" />
                                                         </Grid>
                                                         <Grid
                                                             item
@@ -189,15 +227,16 @@ const OrderEdit = () => {
                                                                 color="error"
                                                                 startIcon={<IconCircleX />}
                                                             >
-                                                                Discard
+                                                                Bekor qilish
                                                             </RouteBtn>
                                                             <Button
+                                                                disabled={isLoading?.open}
                                                                 type="submit"
                                                                 variant="contained"
                                                                 color="info"
                                                                 startIcon={<IconPencil />}
                                                             >
-                                                                Edit
+                                                                Oʻzgartirish
                                                             </Button>
                                                         </Grid>
                                                     </Grid>

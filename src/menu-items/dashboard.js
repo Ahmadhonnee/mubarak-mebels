@@ -8,12 +8,12 @@ const icons = { IconChartDonut };
 
 const dashboard = {
     id: 'dashboard',
-    title: 'Dashboard',
+    title: 'Boshqaruv paneli',
     type: 'group',
     children: [
         {
             id: 'default',
-            title: 'Dashboard',
+            title: 'Boshqaruv paneli',
             type: 'item',
             url: '/dashboard/',
             icon: icons.IconChartDonut,

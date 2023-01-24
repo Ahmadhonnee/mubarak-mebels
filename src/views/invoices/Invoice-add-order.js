@@ -30,13 +30,17 @@ import {
     IconCircleX,
     IconFilePlus,
     IconTextPlus,
+    IconArrowForwardUp,
 } from '@tabler/icons';
+import { LoadingButton } from '@mui/lab';
 
 const InvoiceAddOrder = () => {
     const navigate = useNavigate();
     const { id, orderID } = useParams();
     const [isLoading, setLoading] = useState({ open: false, message: '', for: 'loading' });
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
+    const [redirectOrder, setRedirectOrder] = useState({ open: false, message: '', type: 'action' });
+    const [redirectID, setRedirectID] = useState(null);
 
     // Status Snackbar
     const handleSnackStatusClose = (event, reason) => {
@@ -65,13 +69,22 @@ const InvoiceAddOrder = () => {
     const yupValidateShchema = yup.object().shape({
         product_name: yup
             .string()
-            .typeError('*Enter string')
-            .required("*Can't be empty")
-            .min(2, '*More than 2 characters')
-            .max(30, '*Less than 30 characters'),
-        price: yup.number().typeError('*Enter number').required("*Can't be empty").positive('*Enter positive number'),
-        remainder_amount: yup.number().typeError('*Enter number').required("*Can't be empty").positive('*Enter positive number'),
-        description: yup.string().typeError('*Enter string').required("*Can't be empty").min(2, '*More than 2 characters'),
+            .typeError('*Matn kiriging')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .min(2, '*2 dan ortiq belgi')
+            .max(30, '*30 ta belgidan kam'),
+        price: yup.number().typeError('*Raqam kiriting').required("*Bo'sh bo'lishi mumkin emas").moreThan(-1, '*Musbat raqam kiriting'),
+        remainder_amount: yup
+            .number()
+            .typeError('*Raqam kiriting')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .moreThan(-1, '*Musbat raqam kiriting'),
+        description: yup
+            .string()
+            .typeError('*Matn kiriging')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .min(2, '*2 dan ortiq belgi')
+            .max(100, '*100 ta belgidan kam'),
     });
 
     const handleNewOrderCreate = ({ product_name, price, remainder_amount, description }) => {
@@ -89,12 +102,66 @@ const InvoiceAddOrder = () => {
                 });
                 navigate(-1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                if (err.response.data.errors.unique_product[0]) {
+                    handleRedirectOpen(err.response.data.errors.unique_product[0].message);
+                    setRedirectID(err.response.data.errors.unique_product[0].order_id);
+                    return;
+                }
+
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
         })();
     };
+
+    // Redirect Snack
+    const handleRedirectClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setRedirectOrder({ open: false });
+    };
+    const handleRedirectOpen = (message = 'Such order exists') => {
+        setRedirectOrder({ open: true, message, type: 'action' });
+    };
+
+    const sendSnackContent = (
+        <>
+            <Button disabled={isLoading?.open} color="secondary" size="small" onClick={handleRedirectClose}>
+                Bekor qilish
+            </Button>
+            <LoadingButton
+                loading={isLoading?.open}
+                onClick={() => {
+                    navigate(`/invoices/clients-list/${id}/add-to-order/${redirectID}`);
+                }}
+                size="small"
+                aria-label="close"
+                color="secondary"
+                startIcon={<IconArrowForwardUp />}
+            />
+        </>
+    );
 
     return (
         <>
@@ -102,6 +169,7 @@ const InvoiceAddOrder = () => {
 
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
+            <AlertUser alertInfo={redirectOrder} onClose={handleRedirectClose} action={sendSnackContent} />
 
             <MainCard title="Add order">
                 <Grid
@@ -123,7 +191,7 @@ const InvoiceAddOrder = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} relative="path" variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                 </Grid>
@@ -152,32 +220,37 @@ const InvoiceAddOrder = () => {
                                 >
                                     <Form>
                                         <Grid container justifyContent="center">
-                                            <Grid item container spacing={4} direction="column" my={5} md={6}>
+                                            <Grid item container spacing={4} direction="column" my={5} md={7}>
                                                 <Grid item>
-                                                    <Typography variant="h2">Add order</Typography>
+                                                    <Typography variant="h2">Buyurtma qoʻshish</Typography>
                                                 </Grid>
-                                                <Grid item container direction="column" spacing={1} my={5} md={6}>
+                                                <Grid item container direction="column" spacing={1} my={5} md={7}>
                                                     <Grid item mt={1}>
-                                                        <Typography>Ordering product Name</Typography>
-                                                        <FormikInput name="product_name" inputText="Enter product Name" />
+                                                        <Typography>Buyurtmani Ismi</Typography>
+                                                        <FormikInput name="product_name" inputText="Mahsulot nomini kiriting" />
                                                     </Grid>
 
                                                     <Grid item>
-                                                        <Typography>Ordering product Price</Typography>
+                                                        <Typography>Buyurtmani Narxi</Typography>
                                                         <FormikInput
                                                             inputProps={{ autoComplete: 'off' }}
                                                             name="price"
-                                                            inputText="Enter product Price"
+                                                            inputText="Mahsulot narxini kiriting"
                                                             sx={{ color: 'red' }}
                                                         />
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography>Ordering amount</Typography>
-                                                        <FormikInput name="remainder_amount" inputText="Description" sx={9} md={12} />
+                                                        <Typography>Buyurtma miqdori</Typography>
+                                                        <FormikInput
+                                                            name="remainder_amount"
+                                                            inputText="Buyurtma miqdorini kiriting"
+                                                            sx={9}
+                                                            md={12}
+                                                        />
                                                     </Grid>
                                                     <Grid item>
-                                                        <Typography>Description</Typography>
-                                                        <FormikInput name="description" inputText="Description" />
+                                                        <Typography>Tavsif</Typography>
+                                                        <FormikInput name="description" inputText="Tavsifini kiriting" />
                                                     </Grid>
                                                     <Grid
                                                         item
@@ -195,10 +268,16 @@ const InvoiceAddOrder = () => {
                                                             color="error"
                                                             startIcon={<IconCircleX />}
                                                         >
-                                                            Discard
+                                                            Bekor qilish
                                                         </Button>
-                                                        <Button type="submit" variant="contained" color="info" startIcon={<IconFilePlus />}>
-                                                            Create
+                                                        <Button
+                                                            disabled={isLoading?.open}
+                                                            type="submit"
+                                                            variant="contained"
+                                                            color="info"
+                                                            startIcon={<IconFilePlus />}
+                                                        >
+                                                            Qoʻshish
                                                         </Button>
                                                     </Grid>
                                                 </Grid>

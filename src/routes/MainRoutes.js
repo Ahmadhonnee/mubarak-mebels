@@ -10,7 +10,6 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 // invoices routing
 const Invoices = Loadable(lazy(() => import('views/invoices/Invoices')));
 const InvoiceDetail = Loadable(lazy(() => import('views/invoices/Invoice-detail')));
-const InvoiceEdit = Loadable(lazy(() => import('views/invoices/Invoice-edit')));
 const InvoiceAddOrder = Loadable(lazy(() => import('views/invoices/Invoice-add-order')));
 
 const Orders = Loadable(lazy(() => import('views/orders/Orders')));
@@ -21,8 +20,11 @@ const RegisterUser = Loadable(lazy(() => import('views/users/RegisterUser')));
 const UserList = Loadable(lazy(() => import('views/users/edit-user/UserList')));
 const EditUser = Loadable(lazy(() => import('views/users/edit-user/EditUser')));
 
-// sample page routing
-const MarkPaid = Loadable(lazy(() => import('views/mark-paid/index')));
+// mark paid routing
+const MarkPaid = Loadable(lazy(() => import('views/mark-paid/mark-paid')));
+
+// add to order routing
+const AddToOrder = Loadable(lazy(() => import('views/add-to-order/add-to-order')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -60,12 +62,12 @@ const MainRoutes = {
                                     element: <MarkPaid />,
                                 },
                                 {
-                                    path: 'edit',
-                                    element: <InvoiceEdit />,
-                                },
-                                {
                                     path: 'add-order',
                                     element: <InvoiceAddOrder />,
+                                },
+                                {
+                                    path: 'add-to-order/:orderID',
+                                    element: <AddToOrder />,
                                 },
                             ],
                         },
@@ -103,7 +105,7 @@ const MainRoutes = {
                     element: <RegisterUser />,
                 },
                 {
-                    path: 'client/users',
+                    path: 'client/clients',
                     children: [
                         {
                             path: '',

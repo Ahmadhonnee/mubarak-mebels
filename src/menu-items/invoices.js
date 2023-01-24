@@ -17,19 +17,19 @@ const icons = {
 
 const invoices = {
     id: 'invoices',
-    title: 'Invoices',
-    caption: 'Manage orders',
+    title: 'Hisoblar',
+    caption: 'Hisobkitob',
     type: 'group',
     children: [
         {
             id: 'menagement',
-            title: 'Manage',
+            title: 'Boshqarish',
             type: 'collapse',
             icon: icons.IconArmchair2,
             children: [
                 {
                     id: 'clients',
-                    title: 'Invoices',
+                    title: 'Hisoblar',
                     type: 'item',
                     url: '/invoices/clients-list',
                     icon: icons.IconFileInvoice,
@@ -37,7 +37,7 @@ const invoices = {
                 },
                 {
                     id: 'orders',
-                    title: 'Orders',
+                    title: 'Buyurtmalar',
                     type: 'item',
                     url: '/invoices/orders-list',
                     icon: icons.IconTruckDelivery,
@@ -45,14 +45,6 @@ const invoices = {
                 },
             ],
         },
-        // {
-        //     id: 'util-color',
-        //     title: 'Color',
-        //     type: 'item',
-        //     url: '/utils/util-color',
-        //     icon: icons.IconPalette,
-        //     breadcrumbs: false
-        // }
     ],
 };
 

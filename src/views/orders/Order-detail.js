@@ -33,12 +33,31 @@ const OrderDetail = () => {
         handleSnackLoadingOpen();
         (async () => {
             try {
-                const orderData = await axiosInstance.get(`orders/${id}`);
+                const orderData = await axiosInstance.get(`orders/${orderID}`);
                 setOrder(orderData.data.data);
                 console.log(orderData.data.data);
                 orderData && handleSnackStatusClose();
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -73,7 +92,7 @@ const OrderDetail = () => {
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
 
-            <MainCard title="Manage orders">
+            <MainCard title="Buyurtmani boshqarish">
                 <Grid
                     container
                     spacing={5}
@@ -93,7 +112,7 @@ const OrderDetail = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                     <Grid
@@ -112,14 +131,14 @@ const OrderDetail = () => {
                                                     color="info"
                                                     startIcon={<IconFilePencil />}
                                                 >
-                                                    Edit order
+                                                    Buyurtmani Oʻzgartirish
                                                 </RouteBtn>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
                                                     variant="contained"
                                                     animation="wave"
-                                                    width={85}
+                                                    width={200}
                                                     height={36}
                                                 />
                                             )}
@@ -133,14 +152,14 @@ const OrderDetail = () => {
                                                     color="success"
                                                     startIcon={<IconReceiptRefund />}
                                                 >
-                                                    Mark as paid
+                                                    Toʻlash
                                                 </RouteBtn>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
                                                     variant="contained"
                                                     animation="wave"
-                                                    width={80}
+                                                    width={120}
                                                     height={36}
                                                 />
                                             )}
@@ -154,14 +173,14 @@ const OrderDetail = () => {
                                                     color="info"
                                                     startIcon={<IconUserSearch />}
                                                 >
-                                                    View client
+                                                    Mijozni koʻrish
                                                 </RouteBtn>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
                                                     variant="contained"
                                                     animation="wave"
-                                                    width={80}
+                                                    width={130}
                                                     height={36}
                                                 />
                                             )}
@@ -195,7 +214,7 @@ const OrderDetail = () => {
                                                                 <Grid container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Product Name
+                                                                            Mahsulot nomi
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item>
@@ -213,7 +232,7 @@ const OrderDetail = () => {
                                                                 <Grid container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Price
+                                                                            Narxi
                                                                         </Typography>
                                                                         <Typography
                                                                             sx={{
@@ -236,7 +255,7 @@ const OrderDetail = () => {
                                                                 <Grid item container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Ordered Date
+                                                                            Buyurtma sanasi
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item>
@@ -256,7 +275,7 @@ const OrderDetail = () => {
                                                                 <Grid item container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Last order
+                                                                            Oxirgi buyurtma
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item>
@@ -280,7 +299,7 @@ const OrderDetail = () => {
                                                                 <Grid item container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Remained
+                                                                            Qolgan miqdor
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item>
@@ -300,7 +319,7 @@ const OrderDetail = () => {
                                                                 <Grid item container spacing={1} direction="column">
                                                                     <Grid item>
                                                                         <Typography component="span" variant="body2">
-                                                                            Sold
+                                                                            Sotilgan miqdor
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item>
@@ -339,7 +358,7 @@ const OrderDetail = () => {
                                                             color: '#7E88C3',
                                                         }}
                                                     >
-                                                        Debt
+                                                        Qarz
                                                     </Typography>
                                                     <Typography
                                                         component="div"

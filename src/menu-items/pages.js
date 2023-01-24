@@ -12,19 +12,19 @@ const icons = {
 
 const pages = {
     id: 'pages',
-    title: 'Client',
-    caption: 'Manage client',
+    title: 'Mijoz',
+    caption: 'Mijozni boshqarish',
     type: 'group',
     children: [
         {
             id: 'client',
-            title: 'Client',
+            title: 'Mijoz',
             type: 'collapse',
             icon: icons.IconUsers,
             children: [
                 {
                     id: 'register',
-                    title: 'Register',
+                    title: 'Roʻyxatga qoʻshish',
                     type: 'item',
                     url: '/pages/client/register',
                     icon: icons.IconUserPlus,
@@ -32,9 +32,9 @@ const pages = {
                 },
                 {
                     id: 'product',
-                    title: 'Edit',
+                    title: 'Oʻzgartirish',
                     type: 'item',
-                    url: '/pages/client/users',
+                    url: '/pages/client/clients',
                     icon: icons.IconPencil,
                     target: false,
                 },

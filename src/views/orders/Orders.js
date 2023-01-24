@@ -39,7 +39,26 @@ const Orders = () => {
                 data?.data && handleSnackStatusClose();
                 dispatch({ type: GET_ORDERS, orders: data.data });
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -73,7 +92,7 @@ const Orders = () => {
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
 
-            <MainCard title="Orders List" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
+            <MainCard title="Buyurtmalar roʻyxati" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
                 <Grid container spacing={5} direction="column">
                     <Grid item>
                         <Card
@@ -87,7 +106,7 @@ const Orders = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to="/" variant="text" startIcon={<IconChevronLeft />}>
-                                            Go to Dashboard
+                                            Boshqaruv paneliga
                                         </RouteBtn>
                                     </Grid>
                                 </Grid>
@@ -105,14 +124,14 @@ const Orders = () => {
                                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Order name</TableCell>
-                                                <TableCell align="right">Price</TableCell>
-                                                <TableCell align="right">Order date</TableCell>
-                                                <TableCell align="right">Last order</TableCell>
-                                                <TableCell align="right">Remained</TableCell>
-                                                <TableCell align="right">Sold</TableCell>
-                                                <TableCell align="right">Returned</TableCell>
-                                                <TableCell align="right">Debt</TableCell>
+                                                <TableCell>Buyurtma nomi</TableCell>
+                                                <TableCell align="right">Narxi</TableCell>
+                                                <TableCell align="right">Buyurtma sanasi</TableCell>
+                                                <TableCell align="right">Oxirgi buyurtma</TableCell>
+                                                <TableCell align="right">Qolgan miqdor</TableCell>
+                                                <TableCell align="right">Sotilgan miqdor</TableCell>
+                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                <TableCell align="right">Qarz</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>

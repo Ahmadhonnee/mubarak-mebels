@@ -44,7 +44,7 @@ const chartData = {
     series: [
         {
             name: 'series1',
-            data: [45, 66, 41, 89, 25, 44, 9, 54],
+            data: [100, 100, 41, 89, 25, 44, 9, 54],
         },
     ],
 };

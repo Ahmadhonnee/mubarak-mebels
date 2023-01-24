@@ -1,4 +1,4 @@
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 
 // third party
 import { BrowserRouter } from 'react-router-dom';
@@ -13,11 +13,10 @@ import { store } from 'store';
 import 'assets/scss/style.scss';
 import config from './config';
 import React from 'react';
-
 // ==============================|| REACT DOM RENDER  ||============================== //
 
 const container = document.getElementById('root');
-const root = createRoot(container); // createRoot(container!) if you use TypeScript
+const root = ReactDOM.createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(
     <React.StrictMode>
         <Provider store={store}>

@@ -26,11 +26,11 @@ const UserList = () => {
     }, []);
 
     const handleRowClick = (id) => {
-        navigate(`/pages/client/users/${id}/edit`);
+        navigate(`/pages/client/clients/${id}/edit`);
     };
     console.log(invoices);
     return (
-        <MainCard title="Users List" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
+        <MainCard title="Mijozlar roʻyxati" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
             <Card
                 sx={{
                     bgcolor: '#F9FAFE',
@@ -41,9 +41,9 @@ const UserList = () => {
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>User ID</TableCell>
-                                    <TableCell align="right">Name</TableCell>
-                                    <TableCell align="right">Phone</TableCell>
+                                    <TableCell>Mijozni ID</TableCell>
+                                    <TableCell align="right">Ismi</TableCell>
+                                    <TableCell align="right">Raqami</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>

@@ -52,7 +52,26 @@ const Invoices = () => {
                 data?.data && handleSnackStatusClose();
                 setAllPages(data.data.meta.to / data.data.meta.per_page || 1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -90,7 +109,7 @@ const Invoices = () => {
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
 
-            <MainCard title="Invoices List" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
+            <MainCard title="Mijozlar" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
                 <Grid container spacing={5} direction="column">
                     <Grid item>
                         <Card
@@ -104,7 +123,7 @@ const Invoices = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to="/" variant="text" startIcon={<IconChevronLeft />}>
-                                            Go to Dashboard
+                                            Boshqaruv paneliga
                                         </RouteBtn>
                                     </Grid>
                                 </Grid>
@@ -123,9 +142,9 @@ const Invoices = () => {
                                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>User ID</TableCell>
-                                                <TableCell align="right">Name</TableCell>
-                                                <TableCell align="right">Debt</TableCell>
+                                                <TableCell>ID</TableCell>
+                                                <TableCell align="right">Ism</TableCell>
+                                                <TableCell align="right">Qarz</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>

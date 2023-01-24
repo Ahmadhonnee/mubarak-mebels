@@ -6,9 +6,12 @@ import {
     CardContent,
     CardMedia,
     Grid,
+    IconButton,
     Paper,
     Skeleton,
     Snackbar,
+    SpeedDial,
+    SpeedDialAction,
     Stack,
     Table,
     TableBody,
@@ -25,7 +28,16 @@ import { useNavigate, useParams } from 'react-router';
 import { axiosInstance } from 'services';
 
 // icons
-import { IconTruckDelivery, IconChevronLeft, IconTrash, IconReceiptRefund, IconBrandTelegram, IconPencil } from '@tabler/icons';
+import {
+    IconTruckDelivery,
+    IconChevronLeft,
+    IconTrash,
+    IconReceiptRefund,
+    IconBrandTelegram,
+    IconPencil,
+    IconCirclePlus,
+    IconPlaylistAdd,
+} from '@tabler/icons';
 import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import MainCard from 'ui-component/cards/MainCard';
 import { getDate } from 'hooks';
@@ -35,7 +47,7 @@ import axios from 'axios';
 
 const InvoiceDetail = () => {
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { id, orderID } = useParams();
     const theme = useTheme();
 
     const [isLoading, setLoading] = useState({ open: false, message: '', for: 'loading' });
@@ -44,6 +56,7 @@ const InvoiceDetail = () => {
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
     const [confirmSend, setConfirmSend] = useState({ open: false, message: '', type: 'action' });
 
+    console.log('lll');
     useEffect(() => {
         handleSnackLoadingOpen();
         (async () => {
@@ -56,7 +69,25 @@ const InvoiceDetail = () => {
                 invoiceData && handleSnackStatusClose();
             } catch (err) {
                 console.log(err);
-                handleSnackStatusOpen(err.message);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -108,7 +139,26 @@ const InvoiceDetail = () => {
             try {
                 await axios.post(URL_Telegram);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleConfirmSendClose();
                 handleSnackLoadingClose();
@@ -124,13 +174,13 @@ const InvoiceDetail = () => {
         setConfirmSend({ open: false });
     };
     const handleConfirmSendOpen = () => {
-        setConfirmSend({ open: true, message: 'Do you want send current invoice?', type: 'action' });
+        setConfirmSend({ open: true, message: 'Joriy hisobni yubormoqchimisiz?', type: 'action' });
     };
 
     const sendSnackContent = (
         <>
             <Button color="secondary" size="small" onClick={handleConfirmSendClose}>
-                UNDO
+                Bekor qilish
             </Button>
             <LoadingButton
                 loading={isLoading?.open}
@@ -151,7 +201,7 @@ const InvoiceDetail = () => {
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
             <AlertUser alertInfo={confirmSend} onClose={handleConfirmSendClose} action={sendSnackContent} />
 
-            <MainCard title="Manage orders" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
+            <MainCard title="Buyurtmani boshqarish" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
                 <Grid
                     container
                     spacing={5}
@@ -171,7 +221,7 @@ const InvoiceDetail = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                     <Grid
@@ -189,14 +239,14 @@ const InvoiceDetail = () => {
                                                 color="primary"
                                                 startIcon={<IconTruckDelivery />}
                                             >
-                                                Add order
+                                                Buyurtma qoʻshish
                                             </RouteBtn>
                                         ) : (
                                             <Skeleton
                                                 sx={{ bgcolor: 'grrey.900' }}
                                                 variant="contained"
                                                 animation="wave"
-                                                width={85}
+                                                width={150}
                                                 height={36}
                                             />
                                         )}
@@ -204,19 +254,19 @@ const InvoiceDetail = () => {
                                         <Grid item>
                                             {currentInvocie ? (
                                                 <RouteBtn
-                                                    to={`/pages/client/users/${id}/edit`}
+                                                    to={`/pages/client/clients/${id}/edit`}
                                                     variant="contained"
                                                     color="primary"
                                                     startIcon={<IconPencil />}
                                                 >
-                                                    Edit user
+                                                    Mijozni oʻzgartirish
                                                 </RouteBtn>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
                                                     variant="contained"
                                                     animation="wave"
-                                                    width={80}
+                                                    width={150}
                                                     height={36}
                                                 />
                                             )}
@@ -230,14 +280,14 @@ const InvoiceDetail = () => {
                                                     color="info"
                                                     startIcon={<IconBrandTelegram />}
                                                 >
-                                                    Send invoice
+                                                    Hisobni yuborish
                                                 </Button>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
                                                     variant="contained"
                                                     animation="wave"
-                                                    width={120}
+                                                    width={150}
                                                     height={36}
                                                 />
                                             )}
@@ -263,7 +313,7 @@ const InvoiceDetail = () => {
                                                 <Grid container spacing={1} direction="column">
                                                     <Grid item>
                                                         <Typography component="span" variant="body2">
-                                                            Customer ID
+                                                            Mijozni ID
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
@@ -293,7 +343,7 @@ const InvoiceDetail = () => {
                                                 <Grid container spacing={1} direction="column">
                                                     <Grid item>
                                                         <Typography component="span" variant="body2">
-                                                            Customer Name
+                                                            Mijozni Ismi
                                                         </Typography>
                                                         <Typography
                                                             sx={{
@@ -316,7 +366,7 @@ const InvoiceDetail = () => {
                                                 <Grid item container spacing={1} direction="column">
                                                     <Grid item>
                                                         <Typography component="span" variant="body2">
-                                                            Invoice Date
+                                                            Hisob Sanasi
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
@@ -334,7 +384,7 @@ const InvoiceDetail = () => {
                                                 <Grid item container spacing={1} direction="column">
                                                     <Grid item>
                                                         <Typography component="span" variant="body2">
-                                                            Sent to
+                                                            Mijoz Raqami
                                                         </Typography>
                                                     </Grid>
                                                     <Grid item>
@@ -366,23 +416,32 @@ const InvoiceDetail = () => {
                                                                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                                                     <TableHead>
                                                                         <TableRow>
-                                                                            <TableCell>Product name</TableCell>
-                                                                            <TableCell align="right">Date</TableCell>
-                                                                            <TableCell align="right">Price</TableCell>
-                                                                            <TableCell align="right">Sold</TableCell>
-                                                                            <TableCell align="right">Remained</TableCell>
-                                                                            <TableCell align="right">Returned</TableCell>
-                                                                            <TableCell align="right">Debt</TableCell>
-                                                                            <TableCell align="right">Pay</TableCell>
+                                                                            <TableCell>Mahsulotni Ismi</TableCell>
+                                                                            <TableCell align="right">Sana</TableCell>
+                                                                            <TableCell align="right">Narxi</TableCell>
+                                                                            <TableCell align="right">Sotilgan miqdor</TableCell>
+                                                                            <TableCell align="right">Qolgan miqdor</TableCell>
+                                                                            <TableCell align="right">Qaytarilgan miqdor</TableCell>
+                                                                            <TableCell align="right">Qarz</TableCell>
+                                                                            <TableCell align="right">Toʻlash</TableCell>
                                                                         </TableRow>
                                                                     </TableHead>
                                                                     <TableBody>
                                                                         {currentInvocieOrders?.map((order) => (
                                                                             <TableRow
                                                                                 key={order?.id}
-                                                                                onClick={() =>
-                                                                                    handleOrderRowClick(order?.user_id, order?.id)
-                                                                                }
+                                                                                onClick={(evt) => {
+                                                                                    console.log();
+                                                                                    if (
+                                                                                        evt.target.className.includes('MuiButtonBase-root')
+                                                                                    ) {
+                                                                                        navigate(
+                                                                                            `/invoices/clients-list/${id}/add-to-order/${order?.id}`
+                                                                                        );
+                                                                                        return;
+                                                                                    }
+                                                                                    handleOrderRowClick(order?.user_id, order?.id);
+                                                                                }}
                                                                                 hover
                                                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                                             >
@@ -400,7 +459,7 @@ const InvoiceDetail = () => {
                                                                                 <TableCell align="right">{order.returned_amount}</TableCell>
                                                                                 <TableCell align="right">${order.debt}</TableCell>
                                                                                 <TableCell
-                                                                                    align="right"
+                                                                                    align="center"
                                                                                     sx={{
                                                                                         '&:hover > svg': {
                                                                                             fill: '#F9FAFE',
@@ -408,7 +467,12 @@ const InvoiceDetail = () => {
                                                                                         },
                                                                                     }}
                                                                                 >
-                                                                                    <IconReceiptRefund />
+                                                                                    <IconButton id={order?.id}>
+                                                                                        <IconCirclePlus
+                                                                                            color="#5e35b1"
+                                                                                            style={{ pointerEvents: 'none' }}
+                                                                                        />
+                                                                                    </IconButton>
                                                                                 </TableCell>
                                                                             </TableRow>
                                                                         ))}
@@ -433,7 +497,7 @@ const InvoiceDetail = () => {
                                                                 color: '#7E88C3',
                                                             }}
                                                         >
-                                                            Total Debt
+                                                            Umumiy qarz
                                                         </Typography>
                                                         <Typography
                                                             component="div"

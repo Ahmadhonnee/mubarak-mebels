@@ -17,7 +17,7 @@ import { axiosInstance } from 'services';
 import { IconPencil, IconChevronLeft, IconTrash, IconCircleX } from '@tabler/icons';
 import { LoadingButton } from '@mui/lab';
 
-// ============================|| UTILITIES SHADOW ||============================ //
+// ============================|| Edit User ||============================ //
 
 const EditUser = () => {
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ const EditUser = () => {
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
     const [currentUser, setCurrentUser] = useState(null);
     const [isDeleting, setDeleting] = useState(false);
-    const [isDeleteSnackbarOpened, setDeleteSnackbarOpen] = useState(false);
+    const [isDeleteSnackbarOpened, setDeleteSnackbarOpen] = useState({ open: false, message: '', type: 'action' });
 
     useEffect(() => {
         handleSnackLoadingOpen();
@@ -37,7 +37,26 @@ const EditUser = () => {
                 setCurrentUser(data.data.data);
                 data && handleSnackStatusClose();
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -47,16 +66,16 @@ const EditUser = () => {
     const yupValidateSchema = yup.object().shape({
         name: yup
             .string()
-            .typeError('*Enter string')
-            .required("*Can't be empty")
-            .min(2, '*More than 2 characters')
-            .max(30, '*Less than 30 characters'),
+            .typeError('*Matn kiriting')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .min(2, '*2 dan ortiq belgi')
+            .max(30, '*30 ta belgidan kam'),
         phone: yup
             .string()
-            .typeError('*Enter number')
-            .required("*Can't be empty")
-            .min(2, '*More than 2 characters')
-            .max(20, '*Less than 12 characters'),
+            .typeError('*Raqam kiriting')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .min(2, '*2 dan ortiq belgi')
+            .max(20, '*20 ta belgidan kam'),
     });
 
     const handleFormSubmit = (userData) => {
@@ -66,7 +85,26 @@ const EditUser = () => {
                 await axiosInstance.put(`/users/${id}`, userData);
                 navigate(-1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -98,35 +136,54 @@ const EditUser = () => {
     // Delete user with orders
 
     const handleInvoiceDelete = () => {
-        setDeleting(true);
+        handleSnackLoadingOpen();
         (async () => {
             try {
                 await axiosInstance.delete(`users/${id}`);
                 navigate('/invoices/clients-list/');
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
-                setDeleting(false);
-                setDeleteSnackbarOpen(false);
+                handleDeleteSnackClose();
+                handleDeleteSnackClose();
             }
         })();
     };
 
     // Delete Snackbar
-    const handleDeleteSnackOpen = () => {
-        setDeleteSnackbarOpen(true);
+    const handleDeleteSnackOpen = (message = 'Hisobni oʻchirib tashlamoqchimisiz?') => {
+        setDeleteSnackbarOpen({ open: true, message, type: 'action' });
     };
     const handleDeleteSnackClose = (event, reason) => {
-        setDeleteSnackbarOpen(false);
+        setDeleteSnackbarOpen({ open: false });
     };
 
     const snackbarContent = (
         <>
-            <Button color="secondary" size="small" onClick={handleDeleteSnackClose}>
-                UNDO
+            <Button disabled={isLoading?.open} color="secondary" size="small" onClick={handleDeleteSnackClose}>
+                Bekor qilish
             </Button>
             <LoadingButton
-                loading={isDeleting}
+                loading={isLoading?.open}
                 onClick={handleInvoiceDelete}
                 size="small"
                 aria-label="close"
@@ -140,12 +197,7 @@ const EditUser = () => {
         <>
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
-            <Snackbar
-                open={isDeleteSnackbarOpened}
-                onClose={handleDeleteSnackClose}
-                message="Do you want to delete Invoice"
-                action={snackbarContent}
-            />
+            <AlertUser alertInfo={isDeleteSnackbarOpened} onClose={handleDeleteSnackClose} action={snackbarContent} />
 
             <MainCard title="Edit user">
                 <Grid container spacing={5} direction="column">
@@ -161,7 +213,7 @@ const EditUser = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                     <Grid
@@ -175,12 +227,14 @@ const EditUser = () => {
                                         <Grid item>
                                             {currentUser ? (
                                                 <Button
-                                                    onClick={handleDeleteSnackOpen}
+                                                    onClick={() => {
+                                                        handleDeleteSnackOpen();
+                                                    }}
                                                     variant="contained"
                                                     color="error"
                                                     startIcon={<IconTrash />}
                                                 >
-                                                    Delete
+                                                    Oʻchirish
                                                 </Button>
                                             ) : (
                                                 <Skeleton
@@ -218,50 +272,42 @@ const EditUser = () => {
                                     >
                                         <Form>
                                             <Grid container justifyContent="center">
-                                                <Grid item container spacing={4} direction="column" my={5} md={6}>
+                                                <Grid item container spacing={4} direction="column" my={5} md={7}>
                                                     <Grid item>
                                                         <Typography color="darkblue" variant="h2">
-                                                            Editing {currentUser?.name}
+                                                            "{currentUser?.name}"ni ozgartirish
                                                         </Typography>
                                                     </Grid>
-                                                    <Grid
-                                                        item
-                                                        container
-                                                        spacing={1}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            width: '100%',
-                                                        }}
-                                                    >
-                                                        <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
-                                                            <FormikInput name="name" inputText="User name" />
+                                                    <Grid item container spacing={1} direction="column">
+                                                        <Grid item>
+                                                            <FormikInput name="name" inputText="Mijoz nomi" />
                                                         </Grid>
-                                                        <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
-                                                            <FormikInput name="phone" inputText="User phone" />
+                                                        <Grid item>
+                                                            <FormikInput name="phone" inputText="Mijoz raqami" />
                                                         </Grid>
                                                     </Grid>
                                                     <Grid item container justifyContent="space-between">
                                                         <Grid item>
                                                             <Button
                                                                 onClick={() => {
-                                                                    navigate('/pages/client/users/');
+                                                                    navigate('/pages/client/clients/');
                                                                 }}
                                                                 variant="contained"
                                                                 color="error"
                                                                 startIcon={<IconCircleX />}
                                                             >
-                                                                Discard
+                                                                Bekor qilish
                                                             </Button>
                                                         </Grid>
                                                         <Grid item>
                                                             <Button
+                                                                disabled={isLoading?.open}
                                                                 type="submit"
                                                                 variant="contained"
                                                                 color="info"
                                                                 startIcon={<IconPencil />}
                                                             >
-                                                                Edit client
+                                                                Mijozni oʻzgartirish
                                                             </Button>
                                                         </Grid>
                                                     </Grid>
@@ -270,47 +316,49 @@ const EditUser = () => {
                                         </Form>
                                     </Formik>
                                 ) : (
-                                    <Grid container spacing={10} direction="column">
-                                        <Grid item>
-                                            <Skeleton variant="rectangular" animation="wave" />
-                                        </Grid>
-                                        <Grid
-                                            item
-                                            container
-                                            spacing={1}
-                                            sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                width: '100%',
-                                            }}
-                                        >
-                                            <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
-                                                <Skeleton
-                                                    variant="rectangular"
-                                                    animation="wave"
-                                                    sx={{
-                                                        height: '40px',
-                                                        margin: '10px 0',
-                                                    }}
-                                                />
-                                            </Grid>
-                                            <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
-                                                <Skeleton
-                                                    variant="rectangular"
-                                                    animation="wave"
-                                                    sx={{
-                                                        height: '40px',
-                                                        margin: '10px 0',
-                                                    }}
-                                                />
-                                            </Grid>
-                                        </Grid>
-                                        <Grid item container justifyContent="space-between">
+                                    <Grid container justifyContent="center">
+                                        <Grid item container spacing={4} direction="column" my={5} md={6}>
                                             <Grid item>
-                                                <Skeleton variant="rectangular" animation="wave" width="70px" height="30px" />
+                                                <Skeleton variant="rectangular" animation="wave" />
                                             </Grid>
-                                            <Grid item>
-                                                <Skeleton variant="rectangular" animation="wave" width="70px" height="30px" />
+                                            <Grid
+                                                item
+                                                container
+                                                spacing={1}
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    width: '100%',
+                                                }}
+                                            >
+                                                <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
+                                                    <Skeleton
+                                                        variant="rectangular"
+                                                        animation="wave"
+                                                        sx={{
+                                                            height: '40px',
+                                                            margin: '10px 0',
+                                                        }}
+                                                    />
+                                                </Grid>
+                                                <Grid item width={{ xs: '100%', sm: '100%', md: '100%', lg: '100%' }}>
+                                                    <Skeleton
+                                                        variant="rectangular"
+                                                        animation="wave"
+                                                        sx={{
+                                                            height: '40px',
+                                                            margin: '10px 0',
+                                                        }}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                            <Grid item container justifyContent="space-between">
+                                                <Grid item>
+                                                    <Skeleton variant="rectangular" animation="wave" width="70px" height="30px" />
+                                                </Grid>
+                                                <Grid item>
+                                                    <Skeleton variant="rectangular" animation="wave" width="70px" height="30px" />
+                                                </Grid>
                                             </Grid>
                                         </Grid>
                                     </Grid>

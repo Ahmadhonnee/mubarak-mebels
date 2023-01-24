@@ -32,10 +32,9 @@ import * as yup from 'yup';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
-import SubCard from 'ui-component/cards/SubCard';
 
 // Icons
-import { Form, Formik, useFormikContext } from 'formik';
+import { Form, Formik } from 'formik';
 import { getDate } from 'hooks';
 import { IconReceiptOff, IconChevronLeft, IconCalculator, IconTrash } from '@tabler/icons';
 import { LoadingButton } from '@mui/lab';
@@ -50,9 +49,8 @@ const MarkPaid = () => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
     const [calculateOrder, setCalculate] = useState(null);
-    const [isDeleting, setDeleting] = useState(false);
-    const [isDeleteSnackbarOpened, setDeleteSnackbarOpen] = useState(false);
-
+    const [isDeleteSnackbarOpened, setDeleteSnackbarOpen] = useState({ open: false, message: '', type: 'action' });
+    console.log(editingOrder);
     useEffect(() => {
         handleSnackLoadingOpen();
         (async () => {
@@ -61,47 +59,50 @@ const MarkPaid = () => {
                 setEditingOrder(currentUsersOrder.data.data);
                 setCalculate(currentUsersOrder.data.data);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
         })();
-    }, []);
+    }, [id]);
 
     const yupValidateShchema = yup.object().shape({
         sold: yup
             .number()
-            .typeError('*Enter number!')
-            .required("*Can't be empty")
-            .moreThan(-1, '*Enter positive number')
-            .integer('*Enter integer')
-            .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} is maximum amount`),
-        returned: yup
-            .number()
-            .typeError('*Enter number!')
-            .moreThan(-1, '*Enter positive number')
-            .integer('*Enter integer')
-            .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} is maximum amount`),
-        description: yup.string().typeError('*Enter text!').min(3, '*More than 3 characters').max(30, '*Less than 30 characters'),
+            .typeError('*Raqam kiriging!')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .moreThan(-1, '*Musbat raqam kiriting')
+            .integer('*Butun son kiriging'),
+        returned: yup.number().typeError('*Raqam kiriging!').moreThan(-1, '*Musbat raqam kiriting').integer('*Butun son kiriging'),
+        description: yup.string().typeError('*Matn kiriging!').min(3, '*3 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
     });
 
     const handleOrdersCount = ({ sold, returned, description }) => {
-        if (editingOrder?.remainder_amount < +sold + +returned) {
-            handleSnackStatusOpen(
-                +editingOrder?.remainder_amount - +sold > 0
-                    ? `Sold and Returned orders should't go beyond ${+editingOrder?.remainder_amount}`
-                    : 'You entered wrong value',
-                'error'
-            );
-            return;
-        }
-        console.log(sold);
-        const countedDebt = (editingOrder?.remainder_amount - (+sold + +returned)) * editingOrder?.price;
+        const countedDebt = (editingOrder?.remainder_amount + (+sold + +returned)) * editingOrder?.price;
         setCalculate({
             ...editingOrder,
             price: editingOrder?.price,
             sold_amount: editingOrder?.sold_amount + +sold,
-            remainder_amount: editingOrder?.remainder_amount - (+sold + +returned),
+            remainder_amount: editingOrder?.remainder_amount + (+sold + +returned),
             returned_amount: editingOrder?.returned_amount + +returned,
             debt: countedDebt,
             description: description,
@@ -120,7 +121,6 @@ const MarkPaid = () => {
     };
 
     // Loading Snackbar
-
     const handleSnackLoadingClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -146,7 +146,26 @@ const MarkPaid = () => {
                 await axiosInstance.put(`orders/${orderID}`, calculateOrder);
                 navigate(-1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -154,12 +173,13 @@ const MarkPaid = () => {
     };
 
     // Delete Snackbar
-    const handleDeleteSnackOpen = () => {
-        setDeleteSnackbarOpen(true);
+    const handleDeleteSnackOpen = (message = 'Hisobni oʻchirib tashlamoqchimisiz?') => {
+        setDeleteSnackbarOpen({ open: true, message, type: 'action' });
     };
     const handleDeleteSnackClose = (event, reason) => {
-        setDeleteSnackbarOpen(false);
+        setDeleteSnackbarOpen({ open: false });
     };
+
     // Delete order
     const handleInvoiceDelete = () => {
         handleSnackLoadingOpen();
@@ -168,7 +188,26 @@ const MarkPaid = () => {
                 await axiosInstance.delete(`orders/${orderID}`);
                 navigate(-1);
             } catch (err) {
-                handleSnackStatusOpen(err.message);
+                console.log(err);
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
             } finally {
                 handleSnackLoadingClose();
             }
@@ -178,10 +217,10 @@ const MarkPaid = () => {
     const snackbarContent = (
         <>
             <Button color="secondary" size="small" onClick={handleDeleteSnackClose}>
-                UNDO
+                Bekor qilish
             </Button>
             <LoadingButton
-                loading={isDeleting}
+                loading={isLoading?.open}
                 onClick={handleInvoiceDelete}
                 size="small"
                 aria-label="close"
@@ -195,12 +234,7 @@ const MarkPaid = () => {
         <>
             <AlertUser alertInfo={statusSnackbar} onClose={handleSnackStatusClose} />
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
-            <Snackbar
-                open={isDeleteSnackbarOpened}
-                onClose={handleDeleteSnackClose}
-                message="Do you want to delete Invoice"
-                action={snackbarContent}
-            />
+            <AlertUser alertInfo={isDeleteSnackbarOpened} onClose={handleDeleteSnackClose} action={snackbarContent} />
 
             <Dialog open={isDialogOpen} keepMounted onClose={handleDialogClose} aria-describedby="alert-dialog-slide-description">
                 <DialogContent>
@@ -208,44 +242,44 @@ const MarkPaid = () => {
                         <CardContent>
                             <Grid container spacing={1} direction="column" minWidth="30vw">
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Product name:</Grid>
+                                    <Grid item>Mahsulotni Ismi:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.product_name}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Ordered date:</Grid>
+                                    <Grid item>Buyurtma sanasi:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{getDate(calculateOrder?.created_at)}</Typography>
                                     </Grid>
                                 </Grid>
 
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Price:</Grid>
+                                    <Grid item>Narxi:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">${calculateOrder?.price}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Returned:</Grid>
+                                    <Grid item>Qaytgan miqdor:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.returned_amount}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Remained:</Grid>
+                                    <Grid item>Qolgan miqdor:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.remainder_amount}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Sold:</Grid>
+                                    <Grid item>Sotilgan miqdor:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.sold_amount}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Current debt:</Grid>
+                                    <Grid item>Joriy qarz:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">${calculateOrder?.debt}</Typography>
                                     </Grid>
@@ -255,15 +289,17 @@ const MarkPaid = () => {
                     </Card>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleDialogClose}>Close</Button>
-                    <Button onClick={handleDialogSubmit}>Pay</Button>
+                    <Button onClick={handleDialogClose}>Yopish</Button>
+                    <Button disabled={isLoading?.open} onClick={handleDialogSubmit}>
+                        Toʻlash
+                    </Button>
                 </DialogActions>
             </Dialog>
 
             <MainCard
                 title={
                     editingOrder ? (
-                        <Typography variant="h3">Pay for "{editingOrder?.product_name}"</Typography>
+                        <Typography variant="h3">"{editingOrder?.product_name}"ga qoʻshish</Typography>
                     ) : (
                         <Skeleton variant="text" component="h4" animation="wave" width="50%" />
                     )
@@ -282,18 +318,20 @@ const MarkPaid = () => {
                                 <Grid container justifyContent="space-between" alignItems="center">
                                     <Grid item>
                                         <RouteBtn to={'goBack'} variant="text" startIcon={<IconChevronLeft />}>
-                                            Go back
+                                            Ortga
                                         </RouteBtn>
                                     </Grid>
                                     <Grid item>
                                         {editingOrder ? (
                                             <Button
-                                                onClick={handleDeleteSnackOpen}
+                                                onClick={() => {
+                                                    handleDeleteSnackOpen();
+                                                }}
                                                 variant="contained"
                                                 color="error"
                                                 startIcon={<IconTrash />}
                                             >
-                                                Delete
+                                                Oʻchirish
                                             </Button>
                                         ) : (
                                             <Skeleton
@@ -332,14 +370,14 @@ const MarkPaid = () => {
                                                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                                         <TableHead>
                                                             <TableRow>
-                                                                <TableCell>Name</TableCell>
-                                                                <TableCell align="right">Ordered date</TableCell>
-                                                                <TableCell align="right">Last order</TableCell>
-                                                                <TableCell align="right">Price</TableCell>
-                                                                <TableCell align="right">Remained</TableCell>
-                                                                <TableCell align="right">Sold</TableCell>
-                                                                <TableCell align="right">Returned</TableCell>
-                                                                <TableCell align="right">Debt</TableCell>
+                                                                <TableCell>Ismi</TableCell>
+                                                                <TableCell align="right">Buyurtma sanasi</TableCell>
+                                                                <TableCell align="right">Oxirgi buyurtma</TableCell>
+                                                                <TableCell align="right">Narxi</TableCell>
+                                                                <TableCell align="right">Qolgan miqdor</TableCell>
+                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
+                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
@@ -397,66 +435,91 @@ const MarkPaid = () => {
                                             }}
                                         >
                                             <CardContent>
-                                                <Formik
-                                                    initialValues={{
-                                                        sold: '0',
-                                                        returned: '0',
-                                                        description: '',
-                                                    }}
-                                                    validationSchema={yupValidateShchema}
-                                                    onSubmit={handleOrdersCount}
-                                                    validateOnChange
-                                                >
-                                                    <Form>
-                                                        <Grid container direction="column" spacing={1}>
-                                                            <Grid item mt={1}>
-                                                                <Typography>Sold products amount</Typography>
-                                                                <FormikInput
-                                                                    inputProps={{ autoComplete: 'off' }}
-                                                                    name="sold"
-                                                                    inputText="Enter product amount"
-                                                                />
-                                                            </Grid>
-                                                            <Grid item>
-                                                                <Typography>Returned products amount</Typography>
-                                                                <FormikInput
-                                                                    inputProps={{ autoComplete: 'off' }}
-                                                                    name="returned"
-                                                                    inputText="Enter product amount"
-                                                                />
-                                                            </Grid>
-                                                            <Grid item>
-                                                                <Typography>Order description</Typography>
-                                                                <FormikInput name="description" inputText="Description" />
-                                                            </Grid>
-                                                            <Grid
-                                                                item
-                                                                sx={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'space-between',
-                                                                }}
-                                                            >
-                                                                <Button
-                                                                    type="submit"
-                                                                    variant="contained"
-                                                                    color="info"
-                                                                    startIcon={<IconCalculator />}
+                                                {editingOrder ? (
+                                                    <Formik
+                                                        initialValues={{
+                                                            sold: '0',
+                                                            returned: '0',
+                                                            description: editingOrder?.description || '',
+                                                        }}
+                                                        validationSchema={yupValidateShchema}
+                                                        onSubmit={handleOrdersCount}
+                                                        validateOnChange
+                                                    >
+                                                        <Form>
+                                                            <Grid container direction="column" spacing={1}>
+                                                                <Grid item mt={1}>
+                                                                    <Typography>Sotilgan mahsulot miqdori</Typography>
+                                                                    <FormikInput
+                                                                        inputProps={{ autoComplete: 'off' }}
+                                                                        name="sold"
+                                                                        inputText="Mahsulot miqdorini kiriting"
+                                                                    />
+                                                                </Grid>
+                                                                <Grid item>
+                                                                    <Typography>Qaytgan mahsulot miqdori</Typography>
+                                                                    <FormikInput
+                                                                        inputProps={{ autoComplete: 'off' }}
+                                                                        name="returned"
+                                                                        inputText="Mahsulot miqdorini kiriting"
+                                                                    />
+                                                                </Grid>
+                                                                <Grid item>
+                                                                    <Typography>Buyurtma tavsifi</Typography>
+                                                                    <FormikInput name="description" inputText="Tavsifi" />
+                                                                </Grid>
+                                                                <Grid
+                                                                    item
+                                                                    sx={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'space-between',
+                                                                    }}
                                                                 >
-                                                                    Count
-                                                                </Button>
-                                                                <Button
-                                                                    onClick={handleDialogOpen}
-                                                                    variant="contained"
-                                                                    color="success"
-                                                                    startIcon={<IconReceiptOff />}
-                                                                >
-                                                                    Pay
-                                                                </Button>
+                                                                    <Button
+                                                                        type="submit"
+                                                                        variant="contained"
+                                                                        color="info"
+                                                                        startIcon={<IconCalculator />}
+                                                                    >
+                                                                        Hisoblash
+                                                                    </Button>
+                                                                    <Button
+                                                                        onClick={handleDialogOpen}
+                                                                        variant="contained"
+                                                                        color="success"
+                                                                        startIcon={<IconReceiptOff />}
+                                                                    >
+                                                                        Toʻlash
+                                                                    </Button>
+                                                                </Grid>
                                                             </Grid>
+                                                        </Form>
+                                                    </Formik>
+                                                ) : (
+                                                    <Grid container direction="column" spacing={1}>
+                                                        <Grid item mt={1}>
+                                                            <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
                                                         </Grid>
-                                                    </Form>
-                                                </Formik>
+                                                        <Grid item>
+                                                            <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
+                                                        </Grid>
+                                                        <Grid item>
+                                                            <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
+                                                        </Grid>
+                                                        <Grid
+                                                            item
+                                                            sx={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                            }}
+                                                        >
+                                                            <Skeleton variant="rounded" width={'10%'} height={40} animation="wave" />
+                                                            <Skeleton variant="rounded" width={'10%'} height={40} animation="wave" />
+                                                        </Grid>
+                                                    </Grid>
+                                                )}
                                             </CardContent>
                                         </Card>
 
@@ -472,20 +535,20 @@ const MarkPaid = () => {
                                                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                                         <TableHead>
                                                             <TableRow>
-                                                                <TableCell align="right">Price</TableCell>
-                                                                <TableCell align="right">Returned</TableCell>
-                                                                <TableCell align="right">Sold</TableCell>
-                                                                <TableCell align="right">Remained</TableCell>
-                                                                <TableCell align="right">Debt</TableCell>
+                                                                <TableCell align="right">Narxi</TableCell>
+                                                                <TableCell align="right">Qolgan miqdor</TableCell>
+                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
+                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
                                                             {calculateOrder ? (
                                                                 <TableRow hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                                                     <TableCell align="right">${calculateOrder?.price}</TableCell>
-                                                                    <TableCell align="right">{calculateOrder?.returned_amount}</TableCell>
-                                                                    <TableCell align="right">{calculateOrder?.sold_amount}</TableCell>
                                                                     <TableCell align="right">{calculateOrder?.remainder_amount}</TableCell>
+                                                                    <TableCell align="right">{calculateOrder?.sold_amount}</TableCell>
+                                                                    <TableCell align="right">{calculateOrder?.returned_amount}</TableCell>
                                                                     <TableCell align="right">${calculateOrder?.debt}</TableCell>
                                                                 </TableRow>
                                                             ) : (
