@@ -461,7 +461,7 @@ const InvoiceDetail = () => {
                                                                             <TableCell align="right">Qolgan</TableCell>
                                                                             <TableCell align="right">Qaytarilgan</TableCell>
                                                                             <TableCell align="right">Qarz</TableCell>
-                                                                            <TableCell align="right">Toʻlash</TableCell>
+                                                                            <TableCell align="right">Qoʻshish</TableCell>
                                                                         </TableRow>
                                                                     </TableHead>
                                                                     <TableBody>

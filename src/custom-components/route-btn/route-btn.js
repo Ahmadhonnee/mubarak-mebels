@@ -14,13 +14,18 @@ export const RouteBtn = ({ to, ...props }) => {
         );
     }
     return (
-        <Link
-            to={to}
-            style={{
-                textDecoration: 'none',
+        // <Link
+        //     to={to}
+        //     style={{
+        //         textDecoration: 'none',
+        //     }}
+        // >
+        <Button
+            onClick={() => {
+                navigate(to);
             }}
-        >
-            <Button {...props} />
-        </Link>
+            {...props}
+        />
+        // {/* </Link> */}
     );
 };

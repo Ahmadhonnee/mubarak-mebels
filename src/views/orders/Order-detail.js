@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, ButtonGroup, Card, CardContent, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 
 // icons
@@ -9,6 +9,7 @@ import {
     IconTrash,
     IconReceiptRefund,
     IconBrandTelegram,
+    IconFilePlus,
     IconUserSearch,
 } from '@tabler/icons';
 import { AlertUser, RouteBtn } from 'custom-components';
@@ -146,14 +147,24 @@ const OrderDetail = () => {
 
                                         <Grid item>
                                             {currentOrder ? (
-                                                <RouteBtn
-                                                    to={`/invoices/clients-list/${id}/mark-paid/${orderID}`}
-                                                    variant="contained"
-                                                    color="success"
-                                                    startIcon={<IconReceiptRefund />}
-                                                >
-                                                    Toʻlash
-                                                </RouteBtn>
+                                                <ButtonGroup variant="contained">
+                                                    <RouteBtn
+                                                        to={`/invoices/clients-list/${id}/mark-paid/${orderID}`}
+                                                        variant="contained"
+                                                        color="success"
+                                                        startIcon={<IconReceiptRefund />}
+                                                    >
+                                                        Toʻlash
+                                                    </RouteBtn>
+                                                    <RouteBtn
+                                                        to={`/invoices/clients-list/${id}/add-to-order/${orderID}`}
+                                                        variant="contained"
+                                                        color="info"
+                                                        startIcon={<IconFilePlus />}
+                                                    >
+                                                        Qoʻshish
+                                                    </RouteBtn>
+                                                </ButtonGroup>
                                             ) : (
                                                 <Skeleton
                                                     sx={{ bgcolor: 'grrey.900' }}
