@@ -162,7 +162,7 @@ const MarkPaid = () => {
         (async () => {
             try {
                 await axiosInstance.put(`orders/${orderID}`, calculateOrder);
-                navigate(-1);
+                navigate(-2);
             } catch (err) {
                 console.log(err);
                 switch (err.code) {
@@ -204,7 +204,7 @@ const MarkPaid = () => {
         (async () => {
             try {
                 await axiosInstance.delete(`orders/${orderID}`);
-                navigate(-1);
+                navigate(-2);
             } catch (err) {
                 console.log(err);
                 switch (err.code) {
@@ -392,9 +392,9 @@ const MarkPaid = () => {
                                                                 <TableCell align="right">Buyurtma sanasi</TableCell>
                                                                 <TableCell align="right">Oxirgi buyurtma</TableCell>
                                                                 <TableCell align="right">Narxi</TableCell>
-                                                                <TableCell align="right">Qolgan miqdor</TableCell>
-                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qolgan</TableCell>
+                                                                <TableCell align="right">Sotilgan</TableCell>
+                                                                <TableCell align="right">Qaytgan</TableCell>
                                                                 <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>
@@ -554,9 +554,9 @@ const MarkPaid = () => {
                                                         <TableHead>
                                                             <TableRow>
                                                                 <TableCell align="right">Narxi</TableCell>
-                                                                <TableCell align="right">Qolgan miqdor</TableCell>
-                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qolgan</TableCell>
+                                                                <TableCell align="right">Sotilgan</TableCell>
+                                                                <TableCell align="right">Qaytgan</TableCell>
                                                                 <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>

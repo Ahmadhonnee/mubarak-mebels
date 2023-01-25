@@ -43,7 +43,7 @@ const OrderEdit = () => {
         handleSnackLoadingOpen();
         (async () => {
             try {
-                const data = await axiosInstance.get(`orders/${id}`);
+                const data = await axiosInstance.get(`orders/${orderID}`);
                 setEditing(data.data.data);
                 console.log(data.data.data);
             } catch (err) {

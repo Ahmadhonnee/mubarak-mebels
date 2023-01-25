@@ -1,10 +1,12 @@
 import {
     Button,
     Card,
+    CardActions,
     CardContent,
     CardMedia,
     Grid,
     IconButton,
+    Pagination,
     Paper,
     Table,
     TableBody,
@@ -30,6 +32,7 @@ const Orders = () => {
     const orders = useSelector((state) => state.orders);
     const [isLoading, setLoading] = useState({ open: false, message: '', for: 'loading' });
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
+    const [pagination, setPagination] = useState({ currentPage: 1, allPages: 1 });
 
     useEffect(() => {
         handleSnackLoadingOpen();
@@ -87,6 +90,40 @@ const Orders = () => {
         setLoading({ open: true, message: '', for: 'loading' });
     };
 
+    const handlePaginationChange = (event, value) => {
+        handleSnackLoadingOpen();
+        (async () => {
+            try {
+                const data = await axiosInstance.get(`orders?page=${value}`);
+                dispatch({ type: GET_ORDERS, orders: data.data });
+                data?.data && handleSnackStatusClose();
+            } catch (err) {
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
+            } finally {
+                handleSnackLoadingClose();
+                setPagination({ ...pagination, currentPage: value });
+            }
+        })();
+    };
+
     return (
         <>
             <AlertUser onClose={handleSnackLoadingClose} loading={isLoading} />
@@ -128,9 +165,9 @@ const Orders = () => {
                                                 <TableCell align="right">Narxi</TableCell>
                                                 <TableCell align="right">Buyurtma sanasi</TableCell>
                                                 <TableCell align="right">Oxirgi buyurtma</TableCell>
-                                                <TableCell align="right">Qolgan miqdor</TableCell>
-                                                <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                <TableCell align="right">Qolgan</TableCell>
+                                                <TableCell align="right">Sotilgan</TableCell>
+                                                <TableCell align="right">Qaytgan</TableCell>
                                                 <TableCell align="right">Qarz</TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -150,6 +187,24 @@ const Orders = () => {
                                     </Table>
                                 </TableContainer>
                             </CardMedia>
+                            <CardActions>
+                                <Grid
+                                    item
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <Pagination
+                                        disabled={isLoading?.open}
+                                        count={pagination.allPages}
+                                        page={pagination.currentPage}
+                                        onChange={handlePaginationChange}
+                                    />
+                                </Grid>
+                            </CardActions>
                         </Card>
                     </Grid>
                 </Grid>

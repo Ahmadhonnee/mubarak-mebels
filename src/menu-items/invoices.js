@@ -29,7 +29,7 @@ const invoices = {
             children: [
                 {
                     id: 'clients',
-                    title: 'Hisoblar',
+                    title: 'Mijozlar',
                     type: 'item',
                     url: '/invoices/clients-list',
                     icon: icons.IconFileInvoice,

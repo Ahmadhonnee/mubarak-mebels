@@ -262,19 +262,19 @@ const MarkPaid = () => {
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Qaytgan miqdor:</Grid>
+                                    <Grid item>Qaytgan:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.returned_amount}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Qolgan miqdor:</Grid>
+                                    <Grid item>Qolgan:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.remainder_amount}</Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item container direction="row" justifyContent="space-between">
-                                    <Grid item>Sotilgan miqdor:</Grid>
+                                    <Grid item>Sotilgan:</Grid>
                                     <Grid item>
                                         <Typography variant="h4">{calculateOrder?.sold_amount}</Typography>
                                     </Grid>
@@ -375,9 +375,9 @@ const MarkPaid = () => {
                                                                 <TableCell align="right">Buyurtma sanasi</TableCell>
                                                                 <TableCell align="right">Oxirgi buyurtma</TableCell>
                                                                 <TableCell align="right">Narxi</TableCell>
-                                                                <TableCell align="right">Qolgan miqdor</TableCell>
-                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qolgan</TableCell>
+                                                                <TableCell align="right">Sotilgan</TableCell>
+                                                                <TableCell align="right">Qaytgan</TableCell>
                                                                 <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>
@@ -537,9 +537,9 @@ const MarkPaid = () => {
                                                         <TableHead>
                                                             <TableRow>
                                                                 <TableCell align="right">Narxi</TableCell>
-                                                                <TableCell align="right">Qolgan miqdor</TableCell>
-                                                                <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                                <TableCell align="right">Qaytgan miqdor</TableCell>
+                                                                <TableCell align="right">Qolgan</TableCell>
+                                                                <TableCell align="right">Sotilgan </TableCell>
+                                                                <TableCell align="right">Qaytgan</TableCell>
                                                                 <TableCell align="right">Qarz</TableCell>
                                                             </TableRow>
                                                         </TableHead>

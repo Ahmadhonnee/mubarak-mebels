@@ -457,9 +457,9 @@ const InvoiceDetail = () => {
                                                                             <TableCell>Mahsulotni Ismi</TableCell>
                                                                             <TableCell align="right">Sana</TableCell>
                                                                             <TableCell align="right">Narxi</TableCell>
-                                                                            <TableCell align="right">Sotilgan miqdor</TableCell>
-                                                                            <TableCell align="right">Qolgan miqdor</TableCell>
-                                                                            <TableCell align="right">Qaytarilgan miqdor</TableCell>
+                                                                            <TableCell align="right">Sotilgan</TableCell>
+                                                                            <TableCell align="right">Qolgan</TableCell>
+                                                                            <TableCell align="right">Qaytarilgan</TableCell>
                                                                             <TableCell align="right">Qarz</TableCell>
                                                                             <TableCell align="right">Toʻlash</TableCell>
                                                                         </TableRow>
