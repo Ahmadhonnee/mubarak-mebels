@@ -38,6 +38,13 @@ const RegisterUser = () => {
                 navigate('/pages/client/clients');
             } catch (err) {
                 console.log(err);
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
+
                 switch (err.code) {
                     case 'ERR_NETWORK':
                         handleSnackStatusOpen('Tarmoq xatosi');
@@ -49,12 +56,6 @@ const RegisterUser = () => {
 
                 if (!Object.keys(err.response.data.errors).length) {
                     handleSnackStatusOpen(err.response.data.message);
-                    return;
-                }
-
-                if (Object.keys(err.response.data.errors).length) {
-                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
-                    handleSnackStatusOpen(errors);
                     return;
                 }
             } finally {

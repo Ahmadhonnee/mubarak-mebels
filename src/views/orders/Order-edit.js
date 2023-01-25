@@ -114,7 +114,7 @@ const OrderEdit = () => {
                 await axiosInstance.put(`orders/${orderID}`, {
                     ...editingOrder,
                     product_name,
-                    description,
+                    description: description.trim(),
                 });
                 navigate(-1);
             } catch (err) {

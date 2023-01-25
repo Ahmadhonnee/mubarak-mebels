@@ -93,14 +93,16 @@ const MarkPaid = () => {
             .required("*Bo'sh bo'lishi mumkin emas")
             .moreThan(-1, '*Musbat raqam kiriting')
             .integer('*Butun son kiriting')
+            .lessThan(255, '*255 eng yuqori miqdor')
             .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} eng yuqori miqdordir`),
         returned: yup
             .number()
             .typeError('*Raqam kiriting!')
             .moreThan(-1, '*Musbat raqam kiriting')
             .integer('*Butun son kiriting')
+            .lessThan(255, '*255 eng yuqori miqdor')
             .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} eng yuqori miqdordir`),
-        description: yup.string().typeError('*Matn kiriting!').min(3, '*3 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
+        description: yup.string().typeError('*Matn kiriting!').min(2, '*2 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
     });
 
     const handleOrdersCount = ({ sold, returned, description }) => {
@@ -121,7 +123,7 @@ const MarkPaid = () => {
             remainder_amount: editingOrder?.remainder_amount - (+sold + +returned),
             returned_amount: editingOrder?.returned_amount + +returned,
             debt: countedDebt,
-            description: description,
+            description: description.trim(),
         });
     };
 

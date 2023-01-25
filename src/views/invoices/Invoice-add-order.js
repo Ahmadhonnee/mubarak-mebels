@@ -78,6 +78,7 @@ const InvoiceAddOrder = () => {
             .number()
             .typeError('*Raqam kiriting')
             .required("*Bo'sh bo'lishi mumkin emas")
+            .lessThan(255, '*255 eng yuqori miqdor')
             .moreThan(-1, '*Musbat raqam kiriting'),
         description: yup
             .string()
@@ -98,12 +99,12 @@ const InvoiceAddOrder = () => {
                     remainder_amount: +remainder_amount,
                     sold_amount: 0,
                     returned_amount: 0,
-                    description,
+                    description: description.trim(),
                 });
                 navigate(-1);
             } catch (err) {
                 console.log(err);
-                if (err.response.data.errors.unique_product[0]) {
+                if (err.response.data.errors.unique_product[0] && err.response.data.errors?.unique_product[0]) {
                     handleRedirectOpen(err.response.data.errors.unique_product[0].message);
                     setRedirectID(err.response.data.errors.unique_product[0].order_id);
                     return;
@@ -116,13 +117,14 @@ const InvoiceAddOrder = () => {
                     case 'ERR_BAD_REQUEST':
                         handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
                         return;
+                    case 'ERR_BAD_RESPONSE':
+                        handleSnackStatusOpen('500 holat kodi bilan so‘rov bajarilmadi');
                 }
 
-                if (!Object.keys(err.response.data.errors).length) {
+                if (err.response.data.errors && !Object.keys(err.response.data.errors).length) {
                     handleSnackStatusOpen(err.response.data.message);
                     return;
                 }
-
                 if (Object.keys(err.response.data.errors).length) {
                     const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
                     handleSnackStatusOpen(errors);

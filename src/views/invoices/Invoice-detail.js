@@ -3,10 +3,13 @@ import {
     Box,
     Button,
     Card,
+    CardActionArea,
+    CardActions,
     CardContent,
     CardMedia,
     Grid,
     IconButton,
+    Pagination,
     Paper,
     Skeleton,
     Snackbar,
@@ -55,6 +58,7 @@ const InvoiceDetail = () => {
     const [currentInvocieOrders, setInvoiceOrders] = useState(null);
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
     const [confirmSend, setConfirmSend] = useState({ open: false, message: '', type: 'action' });
+    const [pagination, setPagination] = useState({ currentPage: 1, allPages: 1 });
 
     console.log('lll');
     useEffect(() => {
@@ -65,7 +69,7 @@ const InvoiceDetail = () => {
                 const ordersData = await axiosInstance.get(`users/${id}/orders`);
                 setInvoice(invoiceData.data.data);
                 setInvoiceOrders(ordersData.data.data);
-                console.log(ordersData.data.data);
+                setPagination({ ...pagination, allPages: ordersData.data.pagination.last_page });
                 invoiceData && handleSnackStatusClose();
             } catch (err) {
                 console.log(err);
@@ -192,6 +196,40 @@ const InvoiceDetail = () => {
             />
         </>
     );
+
+    const handlePaginationChange = (event, value) => {
+        handleSnackLoadingOpen();
+        (async () => {
+            try {
+                const ordersData = await axiosInstance.get(`users/${id}/orders?page=${value}`);
+                setInvoiceOrders(ordersData.data.data);
+                ordersData?.data && handleSnackStatusClose();
+            } catch (err) {
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
+            } finally {
+                handleSnackLoadingClose();
+                setPagination({ ...pagination, currentPage: value });
+            }
+        })();
+    };
 
     return (
         <>
@@ -480,6 +518,24 @@ const InvoiceDetail = () => {
                                                                 </Table>
                                                             </TableContainer>
                                                         </CardMedia>
+                                                        <CardActions sx={{ padding: 1 }}>
+                                                            <Grid
+                                                                item
+                                                                sx={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    width: '100%',
+                                                                }}
+                                                            >
+                                                                <Pagination
+                                                                    disabled={isLoading?.open}
+                                                                    count={pagination.allPages}
+                                                                    page={pagination.currentPage}
+                                                                    onChange={handlePaginationChange}
+                                                                />
+                                                            </Grid>
+                                                        </CardActions>
                                                     </Card>
                                                 ) : null}
                                                 <Card sx={{ bgcolor: '#5e35b1', borderTopRightRadius: 0, borderTopLeftRadius: 0 }}>

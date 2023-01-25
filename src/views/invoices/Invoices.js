@@ -15,6 +15,7 @@ import {
     TableRow,
     CardActionArea,
     CardContent,
+    CardActions,
 } from '@mui/material';
 import MuiTypography from '@mui/material/Typography';
 
@@ -38,8 +39,7 @@ const Invoices = () => {
 
     const invoices = useSelector((state) => state.invoices);
     const [isLoading, setLoading] = useState({ open: false, message: '', for: 'loading' });
-    const [currentPage, setPage] = useState(1);
-    const [allPages, setAllPages] = useState(1);
+    const [pagination, setPagination] = useState({ currentPage: 1, allPages: 1 });
     const [statusSnackbar, setStatusSnack] = useState({ open: false, message: '', type: 'error' });
 
     useEffect(() => {
@@ -48,9 +48,8 @@ const Invoices = () => {
             try {
                 const data = await axiosInstance.get('users');
                 dispatch({ type: GET_INVOICES, invoices: data.data });
-                // console.log(data.data);
                 data?.data && handleSnackStatusClose();
-                setAllPages(data.data.meta.to / data.data.meta.per_page || 1);
+                setPagination({ ...pagination, allPages: data.data.pagination.last_page });
             } catch (err) {
                 console.log(err);
                 switch (err.code) {
@@ -78,8 +77,38 @@ const Invoices = () => {
         })();
     }, []);
 
-    const handleChange = (event, value) => {
-        setPage(value);
+    const handlePaginationChange = (event, value) => {
+        handleSnackLoadingOpen();
+        (async () => {
+            try {
+                const data = await axiosInstance.get(`users?page=${value}`);
+                dispatch({ type: GET_INVOICES, invoices: data.data });
+                data?.data && handleSnackStatusClose();
+            } catch (err) {
+                switch (err.code) {
+                    case 'ERR_NETWORK':
+                        handleSnackStatusOpen('Tarmoq xatosi');
+                        return;
+                    case 'ERR_BAD_REQUEST':
+                        handleSnackStatusOpen('404 holat kodi bilan so‘rov bajarilmadi');
+                        return;
+                }
+
+                if (!Object.keys(err.response.data.errors).length) {
+                    handleSnackStatusOpen(err.response.data.message);
+                    return;
+                }
+
+                if (Object.keys(err.response.data.errors).length) {
+                    const errors = Object.values(err.response.data.errors).map((err, index) => `${index + 1}) ${err} `);
+                    handleSnackStatusOpen(errors);
+                    return;
+                }
+            } finally {
+                handleSnackLoadingClose();
+                setPagination({ ...pagination, currentPage: value });
+            }
+        })();
     };
 
     // Status Snackbar
@@ -163,23 +192,24 @@ const Invoices = () => {
                                     </Table>
                                 </TableContainer>
                             </CardMedia>
-                            <CardActionArea>
-                                {+allPages > 1 ? (
-                                    <Grid
-                                        item
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            width: '100%',
-                                        }}
-                                    >
-                                        <Pagination count={allPages} page={currentPage} onChange={handleChange} />
-                                    </Grid>
-                                ) : (
-                                    ''
-                                )}
-                            </CardActionArea>
+                            <CardActions>
+                                <Grid
+                                    item
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <Pagination
+                                        disabled={isLoading?.open}
+                                        count={pagination.allPages}
+                                        page={pagination.currentPage}
+                                        onChange={handlePaginationChange}
+                                    />
+                                </Grid>
+                            </CardActions>
                         </Card>
                     </Grid>
                 </Grid>
