@@ -154,7 +154,7 @@ const OrderDetail = () => {
                                                         color="success"
                                                         startIcon={<IconReceiptRefund />}
                                                     >
-                                                        Toʻlash
+                                                        Ayirish
                                                     </RouteBtn>
                                                     <RouteBtn
                                                         to={`/invoices/clients-list/${id}/add-to-order/${orderID}`}

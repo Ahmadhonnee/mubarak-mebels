@@ -309,7 +309,7 @@ const MarkPaid = () => {
                 <DialogActions>
                     <Button onClick={handleDialogClose}>Yopish</Button>
                     <Button disabled={isLoading?.open} onClick={handleDialogSubmit}>
-                        Toʻlash
+                        Ayirish
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -508,7 +508,7 @@ const MarkPaid = () => {
                                                                         color="success"
                                                                         startIcon={<IconReceiptOff />}
                                                                     >
-                                                                        Toʻlash
+                                                                        Arirish
                                                                     </Button>
                                                                 </Grid>
                                                             </Grid>

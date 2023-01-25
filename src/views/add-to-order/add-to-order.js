@@ -36,7 +36,7 @@ import MainCard from 'ui-component/cards/MainCard';
 // Icons
 import { Form, Formik } from 'formik';
 import { getDate } from 'hooks';
-import { IconReceiptOff, IconChevronLeft, IconCalculator, IconTrash } from '@tabler/icons';
+import { IconReceiptOff, IconChevronLeft, IconCalculator, IconPlaylistAdd, IconTrash } from '@tabler/icons';
 import { LoadingButton } from '@mui/lab';
 
 // ==============================|| Mark paid orders ||============================== //
@@ -292,7 +292,7 @@ const MarkPaid = () => {
                 <DialogActions>
                     <Button onClick={handleDialogClose}>Yopish</Button>
                     <Button disabled={isLoading?.open} onClick={handleDialogSubmit}>
-                        Toʻlash
+                        Qoʻshish
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -489,9 +489,9 @@ const MarkPaid = () => {
                                                                         onClick={handleDialogOpen}
                                                                         variant="contained"
                                                                         color="success"
-                                                                        startIcon={<IconReceiptOff />}
+                                                                        startIcon={<IconPlaylistAdd />}
                                                                     >
-                                                                        Toʻlash
+                                                                        Qoʻshish
                                                                     </Button>
                                                                 </Grid>
                                                             </Grid>
