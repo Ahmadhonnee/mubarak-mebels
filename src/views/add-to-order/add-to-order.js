@@ -36,7 +36,7 @@ import MainCard from 'ui-component/cards/MainCard';
 // Icons
 import { Form, Formik } from 'formik';
 import { getDate } from 'hooks';
-import { IconReceiptOff, IconChevronLeft, IconCalculator, IconPlaylistAdd, IconTrash } from '@tabler/icons';
+import { IconReceiptOff, IconChevronLeft, IconCalculator, IconPlaylistAdd, IconTrash, IconPlaylistX, IconFilePencil } from '@tabler/icons';
 import { LoadingButton } from '@mui/lab';
 
 // ==============================|| Mark paid orders ||============================== //
@@ -86,6 +86,13 @@ const MarkPaid = () => {
     }, [id]);
 
     const yupValidateShchema = yup.object().shape({
+        remained: yup
+            .number()
+            .typeError('*Raqam kiriging!')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .moreThan(-1, '*Musbat raqam kiriting')
+            .lessThan(255, '*255 eng yuqori miqdor')
+            .integer('*Butun son kiriging'),
         sold: yup
             .number()
             .typeError('*Raqam kiriging!')
@@ -93,17 +100,23 @@ const MarkPaid = () => {
             .moreThan(-1, '*Musbat raqam kiriting')
             .lessThan(255, '*255 eng yuqori miqdor')
             .integer('*Butun son kiriging'),
-        returned: yup.number().typeError('*Raqam kiriging!').moreThan(-1, '*Musbat raqam kiriting').integer('*Butun son kiriging'),
+        returned: yup
+            .number()
+            .typeError('*Raqam kiriging!')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .moreThan(-1, '*Musbat raqam kiriting')
+            .lessThan(255, '*255 eng yuqori miqdor')
+            .integer('*Butun son kiriging'),
         description: yup.string().typeError('*Matn kiriging!').min(2, '*2 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
     });
 
-    const handleOrdersCount = ({ sold, returned, description }) => {
-        const countedDebt = (editingOrder?.remainder_amount + (+sold + +returned)) * editingOrder?.price;
+    const handleOrdersCount = ({ sold, returned, remained, description }) => {
+        const countedDebt = (editingOrder?.remainder_amount + remained) * editingOrder?.price;
         setCalculate({
             ...editingOrder,
             price: editingOrder?.price,
             sold_amount: editingOrder?.sold_amount + +sold,
-            remainder_amount: editingOrder?.remainder_amount + (+sold + +returned),
+            remainder_amount: editingOrder?.remainder_amount + +remained,
             returned_amount: editingOrder?.returned_amount + +returned,
             debt: countedDebt,
             description: description.trim(),
@@ -322,27 +335,76 @@ const MarkPaid = () => {
                                             Ortga
                                         </RouteBtn>
                                     </Grid>
-                                    <Grid item>
-                                        {editingOrder ? (
-                                            <Button
-                                                onClick={() => {
-                                                    handleDeleteSnackOpen();
-                                                }}
-                                                variant="contained"
-                                                color="error"
-                                                startIcon={<IconTrash />}
-                                            >
-                                                Oʻchirish
-                                            </Button>
-                                        ) : (
-                                            <Skeleton
-                                                sx={{ bgcolor: 'grrey.900' }}
-                                                variant="contained"
-                                                animation="wave"
-                                                width={90}
-                                                height={36}
-                                            />
-                                        )}
+                                    <Grid
+                                        item
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                        }}
+                                    >
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <RouteBtn
+                                                    to={`/invoices/orders-list/${id}&${orderID}/edit`}
+                                                    variant="contained"
+                                                    color="info"
+                                                    startIcon={<IconFilePencil />}
+                                                >
+                                                    Buyurtmani Oʻzgartirish
+                                                </RouteBtn>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={200}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <RouteBtn
+                                                    to={`/invoices/clients-list/${id}/mark-paid/${orderID}`}
+                                                    variant="contained"
+                                                    color="info"
+                                                    startIcon={<IconPlaylistX />}
+                                                >
+                                                    Arirish
+                                                </RouteBtn>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={90}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <Button
+                                                    onClick={() => {
+                                                        handleDeleteSnackOpen();
+                                                    }}
+                                                    variant="contained"
+                                                    color="error"
+                                                    startIcon={<IconTrash />}
+                                                >
+                                                    Oʻchirish
+                                                </Button>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={90}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
                                     </Grid>
                                 </Grid>
                             </CardContent>
@@ -439,6 +501,7 @@ const MarkPaid = () => {
                                                 {editingOrder ? (
                                                     <Formik
                                                         initialValues={{
+                                                            remained: '0',
                                                             sold: '0',
                                                             returned: '0',
                                                             description: editingOrder?.description || '',
@@ -450,6 +513,14 @@ const MarkPaid = () => {
                                                         <Form>
                                                             <Grid container direction="column" spacing={1}>
                                                                 <Grid item mt={1}>
+                                                                    <Typography>Qoʻlgan mahsulot miqdori</Typography>
+                                                                    <FormikInput
+                                                                        inputProps={{ autoComplete: 'off' }}
+                                                                        name="remained"
+                                                                        inputText="Mahsulot miqdorini kiriting"
+                                                                    />
+                                                                </Grid>
+                                                                <Grid item>
                                                                     <Typography>Sotilgan mahsulot miqdori</Typography>
                                                                     <FormikInput
                                                                         inputProps={{ autoComplete: 'off' }}
@@ -498,8 +569,11 @@ const MarkPaid = () => {
                                                         </Form>
                                                     </Formik>
                                                 ) : (
-                                                    <Grid container direction="column" spacing={1}>
+                                                    <Grid container direction="column" spacing={2}>
                                                         <Grid item mt={1}>
+                                                            <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
+                                                        </Grid>
+                                                        <Grid item>
                                                             <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
                                                         </Grid>
                                                         <Grid item>

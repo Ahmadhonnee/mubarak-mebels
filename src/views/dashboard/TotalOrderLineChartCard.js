@@ -103,7 +103,7 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                                             sx={{ color: 'inherit' }}
                                             onClick={(e) => handleChangeTime(e, true)}
                                         >
-                                            Month
+                                            Oy
                                         </Button>
                                         <Button
                                             disableElevation
@@ -112,7 +112,7 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                                             sx={{ color: 'inherit' }}
                                             onClick={(e) => handleChangeTime(e, false)}
                                         >
-                                            Year
+                                            Yil
                                         </Button>
                                     </Grid>
                                 </Grid>
@@ -152,7 +152,7 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                                                         color: theme.palette.primary[200],
                                                     }}
                                                 >
-                                                    Total Order
+                                                    Jami buyurtma
                                                 </Typography>
                                             </Grid>
                                         </Grid>

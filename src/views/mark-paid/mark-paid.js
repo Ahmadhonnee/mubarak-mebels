@@ -37,7 +37,7 @@ import SubCard from 'ui-component/cards/SubCard';
 // Icons
 import { Form, Formik } from 'formik';
 import { getDate } from 'hooks';
-import { IconReceiptOff, IconChevronLeft, IconCalculator, IconTrash } from '@tabler/icons';
+import { IconPlaylistX, IconChevronLeft, IconCalculator, IconTrash, IconPlaylistAdd, IconFilePencil } from '@tabler/icons';
 import { LoadingButton } from '@mui/lab';
 
 // ==============================|| Mark paid orders ||============================== //
@@ -87,6 +87,18 @@ const MarkPaid = () => {
     }, [id]);
 
     const yupValidateShchema = yup.object().shape({
+        remained: yup
+            .number()
+            .typeError('*Raqam kiriting!')
+            .required("*Bo'sh bo'lishi mumkin emas")
+            .moreThan(-1, '*Musbat raqam kiriting')
+            .integer('*Butun son kiriting')
+            .lessThan(255, '*255 eng yuqori miqdor')
+            .lessThan(
+                +editingOrder?.remainder_amount + 1,
+                editingOrder?.remainder_amount === 0 ? '*Qolgan buyurtmalar yoq' : `${editingOrder?.remainder_amount} eng yuqori miqdordir`
+            ),
+
         sold: yup
             .number()
             .typeError('*Raqam kiriting!')
@@ -94,34 +106,42 @@ const MarkPaid = () => {
             .moreThan(-1, '*Musbat raqam kiriting')
             .integer('*Butun son kiriting')
             .lessThan(255, '*255 eng yuqori miqdor')
-            .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} eng yuqori miqdordir`),
+            .lessThan(
+                +editingOrder?.sold_amount + 1,
+                editingOrder?.sold_amount === 0 ? '*Sotilgan buyurtmalar yoq' : `${editingOrder?.sold_amount} eng yuqori miqdordir`
+            ),
         returned: yup
             .number()
             .typeError('*Raqam kiriting!')
+            .required("*Bo'sh bo'lishi mumkin emas")
             .moreThan(-1, '*Musbat raqam kiriting')
             .integer('*Butun son kiriting')
             .lessThan(255, '*255 eng yuqori miqdor')
-            .lessThan(+editingOrder?.remainder_amount + 1, `${editingOrder?.remainder_amount} eng yuqori miqdordir`),
+            .lessThan(
+                +editingOrder?.returned_amount + 1,
+                editingOrder?.returned_amount === 0 ? '*Qaytgan buyurtmalar yoq' : `${editingOrder?.returned_amount} eng yuqori miqdordir`
+            ),
         description: yup.string().typeError('*Matn kiriting!').min(2, '*2 dan ortiq belgi').max(100, '*100 ta belgidan kam'),
     });
 
-    const handleOrdersCount = ({ sold, returned, description }) => {
-        if (editingOrder?.remainder_amount < +sold + +returned) {
-            handleSnackStatusOpen(
-                +editingOrder?.remainder_amount - +sold > 0
-                    ? `Sotilgan va qaytarilgan buyurtmalar chegaradan oshmasligi kerak ${+editingOrder?.remainder_amount}`
-                    : "Siz noto'g'ri qiymat kiritdingiz",
-                'error'
-            );
+    const handleOrdersCount = ({ sold, returned, remained, description }) => {
+        if (editingOrder?.remainder_amount < remained) {
+            handleSnackStatusOpen(`Qolgan buyurtmalar chegaradan oshmasligi kerak ${+editingOrder?.remainder_amount}`);
+            return;
+        } else if (editingOrder?.sold_amount < +sold) {
+            handleSnackStatusOpen(`Sotilgan buyurtmalardan ayirishni iloji yoq`);
+            return;
+        } else if (editingOrder?.returned_amount < +returned) {
+            handleSnackStatusOpen(`Qaytgan buyurtmalardan ayirishni iloji yoq`);
             return;
         }
-        const countedDebt = (editingOrder?.remainder_amount - (+sold + +returned)) * editingOrder?.price;
+        const countedDebt = (editingOrder?.remainder_amount - +remained) * editingOrder?.price;
         setCalculate({
             ...editingOrder,
             price: editingOrder?.price,
-            sold_amount: editingOrder?.sold_amount + +sold,
-            remainder_amount: editingOrder?.remainder_amount - (+sold + +returned),
-            returned_amount: editingOrder?.returned_amount + +returned,
+            sold_amount: editingOrder?.sold_amount - +sold,
+            remainder_amount: editingOrder?.remainder_amount - +remained,
+            returned_amount: editingOrder?.returned_amount - +returned,
             debt: countedDebt,
             description: description.trim(),
         });
@@ -162,7 +182,7 @@ const MarkPaid = () => {
         (async () => {
             try {
                 await axiosInstance.put(`orders/${orderID}`, calculateOrder);
-                navigate(-2);
+                navigate(-1);
             } catch (err) {
                 console.log(err);
                 switch (err.code) {
@@ -317,7 +337,7 @@ const MarkPaid = () => {
             <MainCard
                 title={
                     editingOrder ? (
-                        <Typography variant="h3">"{editingOrder?.product_name}"ni toʻlash</Typography>
+                        <Typography variant="h3">"{editingOrder?.product_name}"dan ayirish</Typography>
                     ) : (
                         <Skeleton variant="text" component="h4" animation="wave" width="50%" />
                     )
@@ -339,27 +359,76 @@ const MarkPaid = () => {
                                             Ortga
                                         </RouteBtn>
                                     </Grid>
-                                    <Grid item>
-                                        {editingOrder ? (
-                                            <Button
-                                                onClick={() => {
-                                                    handleDeleteSnackOpen();
-                                                }}
-                                                variant="contained"
-                                                color="error"
-                                                startIcon={<IconTrash />}
-                                            >
-                                                Oʻchirish
-                                            </Button>
-                                        ) : (
-                                            <Skeleton
-                                                sx={{ bgcolor: 'grrey.900' }}
-                                                variant="contained"
-                                                animation="wave"
-                                                width={90}
-                                                height={36}
-                                            />
-                                        )}
+                                    <Grid
+                                        item
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                        }}
+                                    >
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <RouteBtn
+                                                    to={`/invoices/orders-list/${id}&${orderID}/edit`}
+                                                    variant="contained"
+                                                    color="info"
+                                                    startIcon={<IconFilePencil />}
+                                                >
+                                                    Buyurtmani Oʻzgartirish
+                                                </RouteBtn>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={200}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <RouteBtn
+                                                    to={`/invoices/clients-list/${id}/add-to-order/${orderID}`}
+                                                    variant="contained"
+                                                    color="info"
+                                                    startIcon={<IconPlaylistAdd />}
+                                                >
+                                                    Qoʻshish
+                                                </RouteBtn>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={90}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
+                                        <Grid item>
+                                            {editingOrder ? (
+                                                <Button
+                                                    onClick={() => {
+                                                        handleDeleteSnackOpen();
+                                                    }}
+                                                    variant="contained"
+                                                    color="error"
+                                                    startIcon={<IconTrash />}
+                                                >
+                                                    Oʻchirish
+                                                </Button>
+                                            ) : (
+                                                <Skeleton
+                                                    sx={{ bgcolor: 'grrey.900' }}
+                                                    variant="contained"
+                                                    animation="wave"
+                                                    width={90}
+                                                    height={36}
+                                                />
+                                            )}
+                                        </Grid>
                                     </Grid>
                                 </Grid>
                             </CardContent>
@@ -456,6 +525,7 @@ const MarkPaid = () => {
                                                 {editingOrder ? (
                                                     <Formik
                                                         initialValues={{
+                                                            remained: '0',
                                                             sold: '0',
                                                             returned: '0',
                                                             description: editingOrder?.description || '',
@@ -467,7 +537,15 @@ const MarkPaid = () => {
                                                         <Form>
                                                             <Grid container direction="column" spacing={1}>
                                                                 <Grid item mt={1}>
-                                                                    <Typography>Sotilgan mahsulot miqdori</Typography>
+                                                                    <Typography>Qolgan mahsulot</Typography>
+                                                                    <FormikInput
+                                                                        inputProps={{ autoComplete: 'off' }}
+                                                                        name="remained"
+                                                                        inputText="Mahsulot miqdorini kiriting"
+                                                                    />
+                                                                </Grid>
+                                                                <Grid item mt={1}>
+                                                                    <Typography>Sotilgan mahsulot</Typography>
                                                                     <FormikInput
                                                                         inputProps={{ autoComplete: 'off' }}
                                                                         name="sold"
@@ -475,7 +553,7 @@ const MarkPaid = () => {
                                                                     />
                                                                 </Grid>
                                                                 <Grid item>
-                                                                    <Typography>Qaytgan mahsulot miqdori</Typography>
+                                                                    <Typography>Qaytgan mahsulot</Typography>
                                                                     <FormikInput
                                                                         inputProps={{ autoComplete: 'off' }}
                                                                         name="returned"
@@ -499,6 +577,7 @@ const MarkPaid = () => {
                                                                         variant="contained"
                                                                         color="info"
                                                                         startIcon={<IconCalculator />}
+                                                                        disabled={isLoading?.open}
                                                                     >
                                                                         Hisoblash
                                                                     </Button>
@@ -506,7 +585,8 @@ const MarkPaid = () => {
                                                                         onClick={handleDialogOpen}
                                                                         variant="contained"
                                                                         color="success"
-                                                                        startIcon={<IconReceiptOff />}
+                                                                        startIcon={<IconPlaylistX />}
+                                                                        disabled={isLoading?.open}
                                                                     >
                                                                         Arirish
                                                                     </Button>
@@ -515,8 +595,11 @@ const MarkPaid = () => {
                                                         </Form>
                                                     </Formik>
                                                 ) : (
-                                                    <Grid container direction="column" spacing={1}>
+                                                    <Grid container direction="column" spacing={2}>
                                                         <Grid item mt={1}>
+                                                            <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
+                                                        </Grid>
+                                                        <Grid item>
                                                             <Skeleton variant="rounded" width={'100%'} height={60} animation="wave" />
                                                         </Grid>
                                                         <Grid item>

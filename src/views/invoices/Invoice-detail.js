@@ -590,7 +590,13 @@ const InvoiceDetail = () => {
                                 }}
                             >
                                 <CardContent>
-                                    <Skeleton component="p" height={30} animation="wave" variant="rounded" />
+                                    {statusSnackbar.message === '404 holat kodi bilan so‘rov bajarilmadi' ? (
+                                        <Typography variant="body2" component="h2">
+                                            Siz istagan buyurtma mavjud emas!
+                                        </Typography>
+                                    ) : (
+                                        <Skeleton component="p" height={30} animation="wave" variant="rounded" />
+                                    )}
                                     <Box width="100%" height="10px" />
                                     <Skeleton component="p" height={30} animation="wave" variant="rounded" />
                                     <Box width="100%" height="30px" />

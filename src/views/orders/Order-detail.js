@@ -2,16 +2,7 @@ import { Box, ButtonGroup, Card, CardContent, Grid, Skeleton, Stack, Typography 
 import MainCard from 'ui-component/cards/MainCard';
 
 // icons
-import {
-    IconTruckDelivery,
-    IconFilePencil,
-    IconChevronLeft,
-    IconTrash,
-    IconReceiptRefund,
-    IconBrandTelegram,
-    IconFilePlus,
-    IconUserSearch,
-} from '@tabler/icons';
+import { IconFilePencil, IconChevronLeft, IconPlaylistX, IconUserSearch, IconPlaylistAdd } from '@tabler/icons';
 import { AlertUser, RouteBtn } from 'custom-components';
 import { useNavigate, useParams } from 'react-router';
 import { useTheme } from '@emotion/react';
@@ -152,7 +143,7 @@ const OrderDetail = () => {
                                                         to={`/invoices/clients-list/${id}/mark-paid/${orderID}`}
                                                         variant="contained"
                                                         color="success"
-                                                        startIcon={<IconReceiptRefund />}
+                                                        startIcon={<IconPlaylistX />}
                                                     >
                                                         Ayirish
                                                     </RouteBtn>
@@ -160,7 +151,7 @@ const OrderDetail = () => {
                                                         to={`/invoices/clients-list/${id}/add-to-order/${orderID}`}
                                                         variant="contained"
                                                         color="info"
-                                                        startIcon={<IconFilePlus />}
+                                                        startIcon={<IconPlaylistAdd />}
                                                     >
                                                         Qoʻshish
                                                     </RouteBtn>
@@ -405,7 +396,13 @@ const OrderDetail = () => {
                                 }}
                             >
                                 <CardContent>
-                                    <Skeleton component="p" height={30} animation="wave" variant="rounded" />
+                                    {statusSnackbar.message === '404 holat kodi bilan so‘rov bajarilmadi' ? (
+                                        <Typography variant="body2" component="h2">
+                                            Siz istagan buyurtma mavjud emas!
+                                        </Typography>
+                                    ) : (
+                                        <Skeleton component="p" height={30} animation="wave" variant="rounded" />
+                                    )}
                                     <Box width="100%" height="10px" />
                                     <Skeleton component="p" height={30} animation="wave" variant="rounded" />
                                     <Box width="100%" height="30px" />

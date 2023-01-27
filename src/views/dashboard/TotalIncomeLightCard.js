@@ -79,7 +79,7 @@ const TotalIncomeLightCard = ({ isLoading }) => {
                                                 mt: 0.5,
                                             }}
                                         >
-                                            Total Income
+                                            Jami daromad
                                         </Typography>
                                     }
                                 />
