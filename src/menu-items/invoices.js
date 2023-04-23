@@ -15,37 +15,68 @@ const icons = {
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 
-const invoices = {
-    id: 'invoices',
-    title: 'Hisoblar',
-    caption: 'Hisobkitob',
+const dashboard = {
+    id: 'dashboard',
+    title: 'Boshqaruv paneli',
     type: 'group',
     children: [
         {
-            id: 'menagement',
-            title: 'Boshqarish',
-            type: 'collapse',
-            icon: icons.IconArmchair2,
-            children: [
-                {
-                    id: 'clients',
-                    title: 'Mijozlar',
-                    type: 'item',
-                    url: '/invoices/clients-list',
-                    icon: icons.IconFileInvoice,
-                    target: false,
-                },
-                {
-                    id: 'orders',
-                    title: 'Buyurtmalar',
-                    type: 'item',
-                    url: '/invoices/orders-list',
-                    icon: icons.IconTruckDelivery,
-                    target: false,
-                },
-            ],
+            id: 'default',
+            title: 'Boshqaruv paneli',
+            type: 'item',
+            url: '/dashboard/',
+            icon: icons.IconChartDonut,
+            breadcrumbs: false,
         },
     ],
 };
+
+const invoices = {
+    id: 'invoices',
+    title: 'Hisoblar',
+    type: 'group',
+    children: [
+        {
+            id: 'clients',
+            title: 'Mijozlar roʻyxati',
+            type: 'item',
+            url: '/invoices/clients-list/',
+            icon: icons.IconFileInvoice,
+            breadcrumbs: false,
+        },
+    ],
+};
+
+// const invoices = {
+//     id: 'invoices',
+//     title: 'Hisoblar',
+//     type: 'group',
+//     children: [
+//         {
+//             id: 'menagement',
+//             title: 'Boshqarish',
+//             type: 'collapse',
+//             icon: icons.IconArmchair2,
+//             children: [
+//                 {
+//                     id: 'clients',
+//                     title: 'Mijozlar',
+//                     type: 'item',
+//                     url: '/invoices/clients-list',
+//                     icon: icons.IconFileInvoice,
+//                     target: false,
+//                 },
+//                 {
+//                     id: 'orders',
+//                     title: 'Buyurtmalar',
+//                     type: 'item',
+//                     url: '/invoices/orders-list',
+//                     icon: icons.IconTruckDelivery,
+//                     target: false,
+//                 },
+//             ],
+//         },
+//     ],
+// };
 
 export default invoices;

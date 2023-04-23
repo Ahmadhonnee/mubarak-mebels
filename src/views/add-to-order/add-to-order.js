@@ -50,7 +50,7 @@ const MarkPaid = () => {
     const [editingOrder, setEditingOrder] = useState(null);
     const [calculateOrder, setCalculate] = useState(null);
     const [isDeleteSnackbarOpened, setDeleteSnackbarOpen] = useState({ open: false, message: '', type: 'action' });
-    console.log(editingOrder);
+
     useEffect(() => {
         handleSnackLoadingOpen();
         (async () => {

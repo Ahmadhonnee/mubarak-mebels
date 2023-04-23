@@ -60,7 +60,6 @@ const InvoiceDetail = () => {
     const [confirmSend, setConfirmSend] = useState({ open: false, message: '', type: 'action' });
     const [pagination, setPagination] = useState({ currentPage: 1, allPages: 1 });
 
-    console.log('lll');
     useEffect(() => {
         handleSnackLoadingOpen();
         (async () => {
